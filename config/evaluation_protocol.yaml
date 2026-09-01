@@ -1,0 +1,130 @@
+protocol_version: 1.0
+
+manuscript:
+  title: "From Semantic Segmentation Errors to Crop Canopy Fraction Estimates: A Task-Aligned Evaluation Framework"
+
+population:
+  may23_model_development:
+    total_images: 2148
+    training_images: 1719
+    heldout_model_selection_images: 429
+    primary_evaluation_images: 429
+  date_stratified_analysis:
+    analysis_images: 185
+    may23_training_overlap_excluded: 15
+    prespecified_dates:
+      - 2016-04-29
+      - 2016-05-02
+      - 2016-05-04
+      - 2016-05-06
+      - 2016-05-09
+      - 2016-05-11
+      - 2016-05-13
+      - 2016-05-18
+      - 2016-05-23
+      - 2016-05-27
+
+five_class_labels:
+  0: soil_background
+  1: crop
+  2: weed
+  3: dicot
+  4: grass
+
+functional_mapping:
+  soil:
+    - soil_background
+  crop:
+    - crop
+  functional_weed:
+    - weed
+    - dicot
+    - grass
+  probability_aggregation:
+    soil: "P5(soil_background)"
+    crop: "P5(crop)"
+    functional_weed: "P5(weed) + P5(dicot) + P5(grass)"
+
+evaluation_grid:
+  grid: native_annotation
+  width_pixels: 1296
+  height_pixels: 966
+  ground_truth_resized: false
+
+confusion_matrix:
+  orientation: true_rows_predicted_columns
+  class_order:
+    - soil_background
+    - crop
+    - weed
+    - dicot
+    - grass
+
+crop_fraction:
+  reference: "count(true crop) / N_valid"
+  hard: "count(hard predicted crop) / N_valid"
+  soft: "sum(P5(crop)) / N_valid"
+  units: fraction
+  hard_error_identity: "hard - reference = (crop_fp_total - crop_fn_total) / N_valid"
+
+crop_error_components:
+  false_positive_sources:
+    - soil_background_to_crop
+    - weed_to_crop
+    - dicot_to_crop
+    - grass_to_crop
+  false_negative_destinations:
+    - crop_to_soil_background
+    - crop_to_weed
+    - crop_to_dicot
+    - crop_to_grass
+
+task_aligned_errors:
+  within_functional: "off-diagonal transitions among weed, dicot, and grass"
+  cross_functional: "off-diagonal transitions between soil, crop, and functional_weed"
+  error_rate_denominator: N_valid
+
+bootstrap:
+  resamples: 2000
+  confidence_level: 0.95
+  interval: percentile
+  lower_percentile: 2.5
+  upper_percentile: 97.5
+  quantile_method: linear
+  random_seed: 20260818
+  random_number_generator: PCG64
+  unit_weighting: equal_weight_per_image
+  priority:
+    - sequence_cluster
+    - moving_block
+    - image_fallback
+  sequence_cluster: "draw K of K observed sequences with replacement and retain every image from each selected sequence"
+  moving_block:
+    type: overlapping_non_circular
+    primary_length_images: 10
+    sensitivity_lengths_images:
+      - 5
+    sensitivity_condition: "use only when the block length is no greater than half the eligible sample size"
+  image_fallback: "used only when sequence or reliable frame order is unavailable"
+  minimum_resampling_units_for_interval: 5
+
+date_support:
+  minimum_eligible_unique_images: 10
+  dependence_support:
+    minimum_sequences: 2
+    or_minimum_moving_blocks: 5
+  unsupported_dates_remain_descriptive: true
+  may23_role: in_domain_reference
+
+representative_case_selection:
+  population: may23_primary_429
+  tie_break: ascending_lexicographic_image_id
+  median_hard_error:
+    rule: "sort hard absolute crop-fraction error ascending and select 1-based rank ceil(n/2)"
+  maximum_hard_error:
+    rule: "select the largest hard absolute crop-fraction error"
+  high_within_low_hard_error:
+    rule: "intersect the top ceil(0.10n) by within-functional error rate with the bottom ceil(0.25n) by hard absolute crop-fraction error, then select the largest within-functional error rate"
+    empty_intersection: no_qualifying_case
+  maximum_cross_functional_error:
+    rule: "select the largest cross-functional error rate"

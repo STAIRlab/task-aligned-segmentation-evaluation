@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite it using the metadata below."
+title: "Task-Aligned Segmentation Evaluation"
+type: software
+authors:
+  - family-names: "Hu"
+    given-names: "Fan"
+  - family-names: "Mosalam"
+    given-names: "Khalid M."
+abstract: >-
+  Processed fixed-model outputs, evaluation protocol metadata, and scripts for
+  reproducing the task-aligned segmentation analyses reported in the associated
+  manuscript.
