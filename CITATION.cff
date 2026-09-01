@@ -2,6 +2,7 @@ cff-version: 1.2.0
 message: "If you use this repository, please cite it using the metadata below."
 title: "Task-Aligned Segmentation Evaluation"
 type: software
+repository-code: "https://github.com/STAIRlab/task-aligned-segmentation-evaluation"
 authors:
   - family-names: "Hu"
     given-names: "Fan"
