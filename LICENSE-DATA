@@ -1,34 +1,43 @@
-Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+Processed-data licensing and source attribution
 
-Scope
+Bonn-derived materials
 
-This license applies to the CSV and YAML processed-analysis materials under
-config/, splits/, and results/.
-
-License notice
-
-These materials are licensed under the Creative Commons
-Attribution-ShareAlike 4.0 International License. To view the license deed and
-full legal code, visit:
-
+The Bonn-derived CSV/JSON materials in results/stage1/, results/stage2/,
+results/m3/, the existing top-level results/*.csv, splits/may23_primary_429.csv
+and splits/temporal_185.csv, and splits/stage2_180.csv are licensed under
+Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0).
+The authors' configuration metadata under config/ use the same license.
 https://creativecommons.org/licenses/by-sa/4.0/
 https://creativecommons.org/licenses/by-sa/4.0/legalcode
 
-Attribution and source-data notice
-
-Attribute this repository's processed materials to Fan Hu and Khalid M.
-Mosalam. Sugar Beets 2016 is the source dataset and is released by its authors
-under CC BY-SA 4.0:
-
+Attribute these processed materials to Fan Hu and Khalid M. Mosalam. Sugar
+Beets 2016 is released by its authors under CC BY-SA 4.0:
 https://www.ipb.uni-bonn.de/data/sugarbeets2016/
 
-Please also cite:
+Cite Chebrolu, N., Lottes, P., Schaefer, A., Winterhalter, W., Burgard, W.,
+and Stachniss, C. (2017). Agricultural robot dataset for plant classification,
+localization and mapping on sugar beet fields. The International Journal of
+Robotics Research, 36(10), 1045-1052. doi:10.1177/0278364917720510.
 
-Nived Chebrolu, Philipp Lottes, Alexander Schaefer, Wera Winterhalter,
-Wolfram Burgard, and Cyrill Stachniss (2017). Agricultural robot dataset for
-plant classification, localization and mapping on sugar beet fields. The
-International Journal of Robotics Research, 36(10), 1045-1052.
-https://doi.org/10.1177/0278364917720510
+CropAndWeed-derived materials
 
-The original RGB images and annotations are not redistributed in this
-repository.
+The abstract processed results in results/external/ and the public cohort
+identifiers in splits/cropandweed_48.csv remain subject to the CropAndWeed
+source conditions, including noncommercial use. They are NOT relicensed
+under CC BY-SA 4.0. The provider permits abstract derivative representations
+that do not allow recovery of the source dataset; source or modified dataset
+redistribution is not permitted. Refer to the provider's complete terms:
+https://github.com/cropandweed/cropandweed-dataset/blob/main/LICENCE
+
+Source attribution: AIT Austrian Institute of Technology GmbH; Steininger, D.,
+Trondl, A., Croonen, G., Simon, J., and Widhalm, V. (2023). The CropAndWeed
+Dataset: A Multi-Modal Learning Approach for Efficient Crop and Weed
+Manipulation. Proceedings of the IEEE/CVF Winter Conference on Applications
+of Computer Vision (WACV).
+https://github.com/cropandweed/cropandweed-dataset
+
+Mixed-population rendered tables/figures retain the applicable conditions for
+each population's records. This package grants no additional rights over
+third-party source data. Raw imagery, source annotations and private
+acquisition metadata are not redistributed. Scripts are covered separately
+by LICENSE-CODE.

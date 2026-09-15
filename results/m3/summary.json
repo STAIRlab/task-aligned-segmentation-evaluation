@@ -1,0 +1,167 @@
+{
+  "model_id": "M3",
+  "representation_metrics": [
+    {
+      "representation": "five_class",
+      "PA_fraction": "0.98780847477506095",
+      "MPA_fraction": "0.61368084192806305",
+      "mIoU_fraction": "0.55705715549766999",
+      "macro_F1_fraction": "0.63812433791174716",
+      "crop_IoU_fraction": "0.86189802323625098",
+      "soil_IoU_fraction": "0.99275312129775961",
+      "five_class_weed_subclass_IoU_fraction": "0.55442442725805685",
+      "five_class_dicot_subclass_IoU_fraction": "0.0090830508798097776",
+      "five_class_grass_subclass_IoU_fraction": "0.36712715481647284",
+      "functional_weed_IoU_fraction": "",
+      "N_valid_pixels": "537080544",
+      "representation_note": "fixed five-output labels"
+    },
+    {
+      "representation": "hard_functional",
+      "PA_fraction": "0.98861458664196189",
+      "MPA_fraction": "0.84466716259660368",
+      "mIoU_fraction": "0.78811010328711506",
+      "macro_F1_fraction": "0.8658019684360011",
+      "crop_IoU_fraction": "0.86189802323625098",
+      "soil_IoU_fraction": "0.99275312129775961",
+      "five_class_weed_subclass_IoU_fraction": "",
+      "five_class_dicot_subclass_IoU_fraction": "",
+      "five_class_grass_subclass_IoU_fraction": "",
+      "functional_weed_IoU_fraction": "0.50967916532733482",
+      "N_valid_pixels": "537080544",
+      "representation_note": "post-hoc evaluation representation of the same fixed five-output model"
+    },
+    {
+      "representation": "probability_functional",
+      "PA_fraction": "0.98869154530386416",
+      "MPA_fraction": "0.85349372314466931",
+      "mIoU_fraction": "0.79282356858616165",
+      "macro_F1_fraction": "0.86980285354864151",
+      "crop_IoU_fraction": "0.86286811517997863",
+      "soil_IoU_fraction": "0.99279233885695883",
+      "five_class_weed_subclass_IoU_fraction": "",
+      "five_class_dicot_subclass_IoU_fraction": "",
+      "five_class_grass_subclass_IoU_fraction": "",
+      "functional_weed_IoU_fraction": "0.52281025172154771",
+      "N_valid_pixels": "537080544",
+      "representation_note": "post-hoc evaluation representation of the same fixed five-output model"
+    }
+  ],
+  "crop_fraction_estimates": {
+    "hard_crop": {
+      "bias": {
+        "ci_high": 0.010333078925041034,
+        "ci_low": -0.000303005170147528,
+        "estimate": 0.0039357728065457535,
+        "interval_available": true
+      },
+      "mae": {
+        "ci_high": 0.012011774233890524,
+        "ci_low": 0.0015993736078594965,
+        "estimate": 0.0056871972632842206,
+        "interval_available": true
+      },
+      "median_absolute_error": {
+        "ci_high": 0.0013011847250977704,
+        "ci_low": 0.0008826329780436057,
+        "estimate": 0.001014428852593105,
+        "interval_available": true
+      },
+      "rmse": {
+        "ci_high": 0.03536690673639162,
+        "ci_low": 0.004684107322125876,
+        "estimate": 0.021987034302237578,
+        "interval_available": true
+      }
+    },
+    "n_images": 429,
+    "n_resampling_units": 8,
+    "n_sequences": 8,
+    "soft_crop": {
+      "bias": {
+        "ci_high": 0.009449569743679009,
+        "ci_low": -0.0006227088662192446,
+        "estimate": 0.003375417677737157,
+        "interval_available": true
+      },
+      "mae": {
+        "ci_high": 0.011532928757776357,
+        "ci_low": 0.0016538132073500066,
+        "estimate": 0.0055469916977975335,
+        "interval_available": true
+      },
+      "median_absolute_error": {
+        "ci_high": 0.0013076062136557366,
+        "ci_low": 0.0010332207182632519,
+        "estimate": 0.0011319140605868735,
+        "interval_available": true
+      },
+      "rmse": {
+        "ci_high": 0.03382177421010132,
+        "ci_low": 0.004598093407621849,
+        "estimate": 0.021085643518120253,
+        "interval_available": true
+      }
+    }
+  },
+  "total_vegetation_mae": {
+    "hard_total_vegetation": 0.001113592025427774,
+    "soft_total_vegetation": 0.0015404513867837864,
+    "canopeo_total_vegetation": 0.004480131442691829
+  },
+  "total_vegetation_population_images": 185,
+  "confusion_5class_global": [
+    [
+      502003121,
+      752536,
+      504160,
+      6195,
+      319375
+    ],
+    [
+      653469,
+      24067749,
+      138829,
+      65347,
+      13630
+    ],
+    [
+      527267,
+      585615,
+      2689081,
+      1463,
+      88007
+    ],
+    [
+      130131,
+      20427,
+      112155,
+      3331,
+      14227
+    ],
+    [
+      771379,
+      1626524,
+      203644,
+      13451,
+      1769431
+    ]
+  ],
+  "confusion_class_order": [
+    "soil",
+    "crop",
+    "weed",
+    "dicot",
+    "grass"
+  ],
+  "representative_cases": [
+    {
+      "criterion_id": "may23_max_fgcc_error",
+      "image_id": "2016-05-23__bonirob_2016-05-23-10-42-16_1_frame54"
+    },
+    {
+      "criterion_id": "may23_high_within_low_fgcc",
+      "image_id": "2016-05-23__bonirob_2016-05-23-10-37-10_0_frame102"
+    }
+  ]
+}

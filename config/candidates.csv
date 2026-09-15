@@ -1,0 +1,8 @@
+model_id,architecture,output_classes,epochs,batch_size,learning_rate
+M1,SegFormer MiT-B5,5,2,2,6e-5
+M2,SegFormer MiT-B5,5,10,2,6e-5
+M3,SegFormer MiT-B5,5,10,1,6e-5
+M4,SegFormer MiT-B5,5,10,2,1e-5
+M5,SegFormer MiT-B5,5,10,1,1e-5
+M6,SegFormer MiT-B5,5,10,2,1e-4
+M7,SegFormer MiT-B5,5,10,1,1e-4

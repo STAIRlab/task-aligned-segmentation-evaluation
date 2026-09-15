@@ -1,0 +1,6 @@
+population,models,n_images,acquisition_scope,role
+m3_primary,M3,429,2016-05-23,development/model-selection population
+m3_temporal,M3,185,nine cross-date strata plus 2016-05-23,includes five in-domain references; matched total-vegetation estimand
+stage1,M1-M7,429,2016-05-23,retrospective development/model-selection comparison
+stage2,M1-M7,180,nine dates; 20 images per date,prespecified cross-date confirmation
+external,M1-M7,48,CropAndWeed Application,one image per acquisition session; binary target

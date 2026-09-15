@@ -1,6 +1,6 @@
 cff-version: 1.2.0
-message: "If you use this repository, please cite it using the metadata below."
-title: "Task-Aligned Segmentation Evaluation"
+message: "Please cite the manuscript of the same title by Hu and Mosalam and identify the repository commit used."
+title: "Task-aligned model selection and measurement validity for segmentation-derived crop canopy fraction"
 type: software
 repository-code: "https://github.com/STAIRlab/task-aligned-segmentation-evaluation"
 authors:
@@ -9,6 +9,7 @@ authors:
   - family-names: "Mosalam"
     given-names: "Khalid M."
 abstract: >-
-  Processed fixed-model outputs, evaluation protocol metadata, and scripts for
-  reproducing the task-aligned segmentation analyses reported in the associated
-  manuscript.
+  Processed records and stored-result reproduction scripts for seven-model
+  Stage-1, Stage-2 and CropAndWeed comparisons, with M3-specific representation,
+  estimator and estimand checks as a secondary component. No training or
+  inference reproduction is claimed.

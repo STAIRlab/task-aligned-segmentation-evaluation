@@ -1,130 +1,125 @@
-protocol_version: 1.0
-
+protocol_version: 2.0
 manuscript:
-  title: "From Semantic Segmentation Errors to Crop Canopy Fraction Estimates: A Task-Aligned Evaluation Framework"
+  title: "Task-aligned model selection and measurement validity for segmentation-derived crop canopy fraction"
+package_scope: stored_results_and_display_scripts
+training_or_inference_reproduction: false
+reproduction_commands_resample_or_reestimate_metrics: false
 
-population:
-  may23_model_development:
-    total_images: 2148
-    training_images: 1719
-    heldout_model_selection_images: 429
-    primary_evaluation_images: 429
-  date_stratified_analysis:
-    analysis_images: 185
-    may23_training_overlap_excluded: 15
-    prespecified_dates:
-      - 2016-04-29
-      - 2016-05-02
-      - 2016-05-04
-      - 2016-05-06
-      - 2016-05-09
-      - 2016-05-11
-      - 2016-05-13
-      - 2016-05-18
-      - 2016-05-23
-      - 2016-05-27
+populations:
+  stage1:
+    n_images_per_model: 429
+    date: "2016-05-23"
+    role: retrospective_development_model_selection
+    original_development_pairs: 2148
+    training_pairs: 1719
+    heldout_selection_pairs: 429
+    metrics_protocol: MSD-1.0
+    tails_and_rank_associations: exploratory_post_stage1
+  stage2:
+    n_images_per_model: 180
+    images_per_date: 20
+    dates: ["2016-04-29", "2016-05-02", "2016-05-04", "2016-05-06", "2016-05-09", "2016-05-11", "2016-05-13", "2016-05-18", "2016-05-27"]
+    role: prespecified_cross_date_confirmation
+    protocol: MSD-2.0
+    may23_in_domain_references_excluded: 5
+    temporal_training_overlap_exclusions: 15
+    date_strata: descriptive_acquisition_contrasts
+  external:
+    dataset: CropAndWeed
+    recording_set: Application
+    n_images_per_model: 48
+    sessions: 48
+    images_per_session: 1
+    protocol: CW-EV-1.0
+    selection: "Sort eligible frames numerically within each session; take zero-based floor((n - 1) / 2), before prediction inspection."
+    no_repeat_site_plot_acquisition: "Confirmed in dataset-author correspondence; not a claim of statistical independence."
+  m3_secondary_temporal:
+    n_images: 185
+    includes_may23_in_domain_references: 5
+    target: matched_total_vegetation_fraction
+    distinct_from_stage2_pool: true
 
+candidates:
+  ids: [M1, M2, M3, M4, M5, M6, M7]
+  configuration_file: config/candidates.csv
+  architecture: SegFormer_MiT_B5
+  controlled_factorial_ablation: false
+  independent_training_replicates: false
 five_class_labels:
   0: soil_background
   1: crop
   2: weed
   3: dicot
   4: grass
-
 functional_mapping:
-  soil:
-    - soil_background
-  crop:
-    - crop
-  functional_weed:
-    - weed
-    - dicot
-    - grass
-  probability_aggregation:
-    soil: "P5(soil_background)"
-    crop: "P5(crop)"
-    functional_weed: "P5(weed) + P5(dicot) + P5(grass)"
-
-evaluation_grid:
-  grid: native_annotation
-  width_pixels: 1296
-  height_pixels: 966
-  ground_truth_resized: false
-
+  soil: [soil_background]
+  crop: [crop]
+  functional_weed: [weed, dicot, grass]
+  probability_functional_weed: "P(weed) + P(dicot) + P(grass)"
 confusion_matrix:
-  orientation: true_rows_predicted_columns
-  class_order:
-    - soil_background
-    - crop
-    - weed
-    - dicot
-    - grass
+  orientation: reference_rows_predicted_columns
+  class_order: [soil_background, crop, weed, dicot, grass]
 
-crop_fraction:
-  reference: "count(true crop) / N_valid"
-  hard: "count(hard predicted crop) / N_valid"
-  soft: "sum(P5(crop)) / N_valid"
-  units: fraction
-  hard_error_identity: "hard - reference = (crop_fp_total - crop_fn_total) / N_valid"
+stored_inference_convention:
+  input_height_width: [483, 648]
+  RGB_resize: Pillow_bilinear_full_frame
+  RGB_scale: "1/255"
+  normalization_mean: [0.485, 0.456, 0.406]
+  normalization_std: [0.229, 0.224, 0.225]
+  logits_restore: bilinear_align_corners_false
+  argmax_after_native_logit_restoration: true
+  ground_truth_resized: false
+  bonn_native_height_width: [966, 1296]
+  external_native_height_width: [1088, 1920]
+  external_geometry: "Full-frame resize changes aspect ratio; no cropping, letterboxing or external retuning."
+external_reference:
+  crop_source_ids: [7, 8, 9, 10, 11, 12]
+  noncrop_source_ids: "0-6 and 13-99"
+  excluded_source_id: 255
+  other_source_values: unresolved_fail_closed
+  predicted_crop_class: 1
+  five_class_mIoU_available: false
 
-crop_error_components:
-  false_positive_sources:
-    - soil_background_to_crop
-    - weed_to_crop
-    - dicot_to_crop
-    - grass_to_crop
-  false_negative_destinations:
-    - crop_to_soil_background
-    - crop_to_weed
-    - crop_to_dicot
-    - crop_to_grass
+measurement:
+  reference_crop_fraction: "reference_crop_count / N_valid"
+  hard_crop_fraction: "predicted_crop_count / N_valid"
+  soft_crop_fraction_m3_only: "sum(P(crop)) / N_valid"
+  hard_error_identity: "hard - reference = (crop_FP - crop_FN) / N_valid"
+  within_weed_subclass_direct_crop_fraction_effect: 0
+  fraction_units: "0-1; multiply by 100 for percentage/percentage-point display"
+  bias_and_average_error_weighting: equal_weight_per_image
+  directional_rates: "Pooled counts / pooled valid pixels; not image-weighted bias when valid image sizes differ."
+  uncertainty_scope: "M3 only; no seven-candidate comparative bootstrap."
+  rank_orientation: "1 is best; IoU higher, errors lower; absolute bias only when ranked."
+  p_values: not_reported
+  nominal_five_class_mIoU_defined_classes: {stage1: 5, stage2: 4}
+  hard_functional_mIoU_defined_classes: 3
+  quantiles: linear_empirical
+  strict_exceedance_thresholds_pp: [0.5, 1, 5, 10]
+  tied_zero_count_satisfies_strict_inequality: false
 
-task_aligned_errors:
-  within_functional: "off-diagonal transitions among weed, dicot, and grass"
-  cross_functional: "off-diagonal transitions between soil, crop, and functional_weed"
-  error_rate_denominator: N_valid
-
-bootstrap:
-  resamples: 2000
-  confidence_level: 0.95
-  interval: percentile
-  lower_percentile: 2.5
-  upper_percentile: 97.5
-  quantile_method: linear
-  random_seed: 20260818
-  random_number_generator: PCG64
-  unit_weighting: equal_weight_per_image
-  priority:
-    - sequence_cluster
-    - moving_block
-    - image_fallback
-  sequence_cluster: "draw K of K observed sequences with replacement and retain every image from each selected sequence"
-  moving_block:
-    type: overlapping_non_circular
-    primary_length_images: 10
-    sensitivity_lengths_images:
-      - 5
-    sensitivity_condition: "use only when the block length is no greater than half the eligible sample size"
-  image_fallback: "used only when sequence or reliable frame order is unavailable"
-  minimum_resampling_units_for_interval: 5
-
-date_support:
+m3_saved_intervals:
+  population_images: 429
+  sequences: 8
+  resamples_in_original_analysis: 2000
+  method: whole_sequence_cluster_percentile
+  percentiles: [2.5, 97.5]
+  original_seed: 20260818
+  original_random_number_generator: PCG64
+  intervals_file: results/m3/summary.json
+  rerun_by_public_commands: false
+m3_date_support:
   minimum_eligible_unique_images: 10
-  dependence_support:
-    minimum_sequences: 2
-    or_minimum_moving_blocks: 5
-  unsupported_dates_remain_descriptive: true
-  may23_role: in_domain_reference
+  minimum_reconstructable_sequences: 2
+  alternative_minimum_overlapping_non_circular_10_image_windows: 5
+  reliable_frame_order_required_for_windows: true
+  april29: descriptive_sequence_window_support_unavailable
+  may23_five_images: in_domain_reference_only
 
-representative_case_selection:
-  population: may23_primary_429
+representative_cases:
+  figure2: "One prespecified frame-188 illustration; visual appearance does not establish model superiority."
+  figure7_high_within_low_error: "Top ceil(0.10n) within-functional-error rate intersected with bottom ceil(0.25n) hard absolute crop-fraction error; select greatest within-functional rate."
+  figure7_maximum_error: "Greatest hard absolute crop-fraction error; the independently specified maximum-cross-functional rule selected the same image."
   tie_break: ascending_lexicographic_image_id
-  median_hard_error:
-    rule: "sort hard absolute crop-fraction error ascending and select 1-based rank ceil(n/2)"
-  maximum_hard_error:
-    rule: "select the largest hard absolute crop-fraction error"
-  high_within_low_hard_error:
-    rule: "intersect the top ceil(0.10n) by within-functional error rate with the bottom ceil(0.25n) by hard absolute crop-fraction error, then select the largest within-functional error rate"
-    empty_intersection: no_qualifying_case
-  maximum_cross_functional_error:
-    rule: "select the largest cross-functional error rate"
+  population_images: 429
+  qualitative_image_regeneration_in_package: false

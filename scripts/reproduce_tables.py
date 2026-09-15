@@ -1,353 +1,111 @@
 #!/usr/bin/env python3
-"""Reproduce the numerical content of manuscript Tables 1--3."""
-
-from __future__ import annotations
-
+"""Export Tables 1-7 from stored results; no metric estimation or resampling."""
 import argparse
 import csv
-from collections import Counter
+import json
 from pathlib import Path
 
-import numpy as np
-import yaml
-
-
 ROOT = Path(__file__).resolve().parents[1]
-FIVE_LABELS = ("soil_background", "crop", "weed", "dicot", "grass")
-FUNCTIONAL_LABELS = ("soil", "crop", "functional_weed")
-MAY23_SPLIT_FIELDS = (
-    "image_id",
-    "acquisition_date",
-    "model_development_split",
-)
-TEMPORAL_SPLIT_FIELDS = (
-    "image_id",
-    "acquisition_date",
-    "generalization_role",
-    "date_specific_generalization_claim_supported",
-    "sequence_id",
-    "frame_index",
-)
 
 
-def read_rows(path: Path) -> list[dict[str, str]]:
-    with path.open("r", encoding="utf-8", newline="") as handle:
-        return list(csv.DictReader(handle))
+def read_csv(name):
+    with (ROOT / name).open(newline='') as f:
+        return list(csv.DictReader(f))
 
 
-def require_fields(
-    rows: list[dict[str, str]], expected: tuple[str, ...], *, label: str
-) -> None:
-    if not rows:
-        raise RuntimeError(f"{label} is empty")
-    actual = tuple(rows[0])
-    if actual != expected:
-        raise RuntimeError(f"{label} fields differ from the public schema: {actual}")
+def load_summary(population):
+    return json.loads((ROOT / 'results' / population / 'summary.json').read_text())
 
 
-def write_rows(path: Path, fieldnames: list[str], rows: list[dict[str, object]]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
+def write_table(output_dir, name, rows):
+    with (output_dir / (name + '.csv')).open('w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=list(rows[0]), lineterminator='\n')
         writer.writeheader()
         writer.writerows(rows)
 
 
-def number(value: float) -> str:
-    return format(float(value), ".17g")
+def displayed(value, digits=4, scale=100):
+    return format(float(value) * scale, '.' + str(digits) + 'f')
 
 
-def load_protocol() -> dict:
-    with (ROOT / "config" / "evaluation_protocol.yaml").open("r", encoding="utf-8") as handle:
-        return yaml.safe_load(handle)
-
-
-def confusion_arrays(rows: list[dict[str, str]]) -> tuple[np.ndarray, np.ndarray]:
-    five = np.asarray(
-        [
-            [
-                [int(row[f"true_{truth}_pred_{prediction}_count"]) for prediction in FIVE_LABELS]
-                for truth in FIVE_LABELS
-            ]
-            for row in rows
-        ],
-        dtype=np.int64,
-    )
-    probability = np.asarray(
-        [
-            [
-                [
-                    int(row[f"prob_functional_true_{truth}_pred_{prediction}_count"])
-                    for prediction in FUNCTIONAL_LABELS
-                ]
-                for truth in FUNCTIONAL_LABELS
-            ]
-            for row in rows
-        ],
-        dtype=np.int64,
-    )
-    n_valid = np.asarray([int(row["n_valid_pixels"]) for row in rows], dtype=np.int64)
-    if not np.array_equal(five.sum(axis=(1, 2)), n_valid):
-        raise RuntimeError("Five-class confusion totals do not match n_valid_pixels")
-    if not np.array_equal(probability.sum(axis=(1, 2)), n_valid):
-        raise RuntimeError("Probability-functional confusion totals do not match n_valid_pixels")
-    return five, probability
-
-
-def hard_functional_confusion(five: np.ndarray) -> np.ndarray:
-    mapping = np.asarray([0, 1, 2, 2, 2], dtype=np.int64)
-    result = np.zeros((3, 3), dtype=np.int64)
-    for true_index in range(5):
-        for predicted_index in range(5):
-            result[mapping[true_index], mapping[predicted_index]] += five[
-                true_index, predicted_index
-            ]
-    return result
-
-
-def metric_bundle(confusion: np.ndarray) -> dict[str, object]:
-    matrix = np.asarray(confusion, dtype=np.int64)
-    true_total = matrix.sum(axis=1, dtype=np.int64)
-    predicted_total = matrix.sum(axis=0, dtype=np.int64)
-    true_positive = np.diag(matrix).astype(np.float64)
-    false_negative = true_total - true_positive
-    false_positive = predicted_total - true_positive
-    iou_denominator = true_positive + false_positive + false_negative
-    f1_denominator = 2.0 * true_positive + false_positive + false_negative
-    iou = np.divide(
-        true_positive,
-        iou_denominator,
-        out=np.full(true_positive.shape, np.nan),
-        where=iou_denominator > 0,
-    )
-    recall = np.divide(
-        true_positive,
-        true_total,
-        out=np.full(true_positive.shape, np.nan),
-        where=true_total > 0,
-    )
-    f1 = np.divide(
-        2.0 * true_positive,
-        f1_denominator,
-        out=np.full(true_positive.shape, np.nan),
-        where=f1_denominator > 0,
-    )
-    return {
-        "pa": float(true_positive.sum() / matrix.sum()),
-        "mpa": float(np.nanmean(recall)),
-        "miou": float(np.nanmean(iou)),
-        "macro_f1": float(np.nanmean(f1)),
-        "class_iou": iou,
-        "n_valid": int(matrix.sum()),
-    }
-
-
-def summary_metrics(reference: np.ndarray, prediction: np.ndarray) -> dict[str, float]:
-    signed = prediction - reference
-    absolute = np.abs(signed)
-    return {
-        "bias": float(np.mean(signed, dtype=np.float64)),
-        "mae": float(np.mean(absolute, dtype=np.float64)),
-        "rmse": float(np.sqrt(np.mean(np.square(signed), dtype=np.float64))),
-        "median_absolute_error": float(np.median(absolute)),
-    }
-
-
-def cluster_bootstrap(
-    reference: np.ndarray,
-    prediction: np.ndarray,
-    sequence_ids: np.ndarray,
-    *,
-    resamples: int,
-    seed: int,
-    random_number_generator: str,
-) -> dict[str, tuple[float, float, float]]:
-    unique_sequences = np.unique(sequence_ids)
-    if unique_sequences.size < 2 or np.any(sequence_ids == ""):
-        raise RuntimeError("The primary analysis requires complete sequence-cluster support")
-    if random_number_generator != "PCG64":
-        raise RuntimeError("This release reproducer requires the declared PCG64 generator")
-    generator = np.random.Generator(np.random.PCG64(seed))
-    samples = {
-        name: np.empty(resamples, dtype=np.float64)
-        for name in ("bias", "mae", "rmse", "median_absolute_error")
-    }
-    for draw_index in range(resamples):
-        selected_sequences = generator.choice(
-            unique_sequences, size=unique_sequences.size, replace=True
-        )
-        selected = np.concatenate(
-            [np.flatnonzero(sequence_ids == sequence) for sequence in selected_sequences]
-        )
-        values = summary_metrics(reference[selected], prediction[selected])
-        for name, value in values.items():
-            samples[name][draw_index] = value
-    point = summary_metrics(reference, prediction)
-    output: dict[str, tuple[float, float, float]] = {}
-    for name, values in samples.items():
-        try:
-            low, high = np.quantile(values, (0.025, 0.975), method="linear")
-        except TypeError:
-            low, high = np.quantile(values, (0.025, 0.975), interpolation="linear")
-        output[name] = (point[name], float(low), float(high))
-    return output
-
-
-def reproduce_table1(protocol: dict, output_dir: Path) -> None:
-    may23 = read_rows(ROOT / "splits" / "may23_primary_429.csv")
-    temporal = read_rows(ROOT / "splits" / "temporal_185.csv")
-    require_fields(may23, MAY23_SPLIT_FIELDS, label="May 23 split")
-    require_fields(temporal, TEMPORAL_SPLIT_FIELDS, label="Temporal split")
-    population = protocol["population"]
-    may23_config = population["may23_model_development"]
-    temporal_config = population["date_stratified_analysis"]
-    if len(may23) != may23_config["primary_evaluation_images"]:
-        raise RuntimeError("May 23 split count differs from the protocol")
-    if len(temporal) != temporal_config["analysis_images"]:
-        raise RuntimeError("Temporal split count differs from the protocol")
-    if any(
-        row["model_development_split"] != "heldout_model_selection" for row in may23
-    ):
-        raise RuntimeError("May 23 split contains an unexpected model-development role")
-    by_date = Counter(row["acquisition_date"] for row in temporal)
-    ordered_dates = [
-        value.isoformat() if hasattr(value, "isoformat") else str(value)
-        for value in temporal_config["prespecified_dates"]
-    ]
-    date_counts = "; ".join(f"{date}: {by_date[date]}" for date in ordered_dates)
-    rows = [
-        {"section": "Dataset", "item": "Source dataset", "value": "2016 Sugar Beets Dataset, Bonn, Germany", "unit": "definition"},
-        {"section": "May 23 population", "item": "Model-development total", "value": may23_config["total_images"], "unit": "images"},
-        {"section": "May 23 population", "item": "Training", "value": may23_config["training_images"], "unit": "images"},
-        {"section": "May 23 population", "item": "Held-out/model-selection", "value": may23_config["heldout_model_selection_images"], "unit": "images"},
-        {"section": "May 23 population", "item": "Primary evaluation subset", "value": len(may23), "unit": "images"},
-        {"section": "Temporal population", "item": "Date-stratified analysis total", "value": len(temporal), "unit": "images"},
-        {"section": "Temporal population", "item": "Eligible unique images by date", "value": date_counts, "unit": "images"},
-        {"section": "Temporal population", "item": "Known May 23 training-overlap exclusions", "value": temporal_config["may23_training_overlap_excluded"], "unit": "images"},
-        {"section": "Evaluation", "item": "Evaluation grid width", "value": protocol["evaluation_grid"]["width_pixels"], "unit": "pixels"},
-        {"section": "Evaluation", "item": "Evaluation grid height", "value": protocol["evaluation_grid"]["height_pixels"], "unit": "pixels"},
-        {"section": "Uncertainty", "item": "Bootstrap resamples", "value": protocol["bootstrap"]["resamples"], "unit": "resamples"},
-    ]
-    write_rows(output_dir / "table1_dataset_evaluation.csv", ["section", "item", "value", "unit"], rows)
-
-
-def reproduce_table2(output_dir: Path) -> None:
-    rows = read_rows(ROOT / "results" / "per_image_confusion.csv")
-    if len(rows) != 429:
-        raise RuntimeError("Expected 429 per-image confusion rows")
-    five_per_image, probability_per_image = confusion_arrays(rows)
-    five = five_per_image.sum(axis=0, dtype=np.int64)
-    hard = hard_functional_confusion(five)
-    probability = probability_per_image.sum(axis=0, dtype=np.int64)
-    metrics = {
-        "five_class": metric_bundle(five),
-        "hard_functional": metric_bundle(hard),
-        "probability_functional": metric_bundle(probability),
-    }
-    output_rows: list[dict[str, object]] = []
-    for name in ("five_class", "hard_functional", "probability_functional"):
-        bundle = metrics[name]
-        iou = np.asarray(bundle["class_iou"], dtype=np.float64)
-        output_rows.append(
-            {
-                "representation": name,
-                "pa_fraction": number(bundle["pa"]),
-                "mpa_fraction": number(bundle["mpa"]),
-                "miou_fraction": number(bundle["miou"]),
-                "macro_f1_fraction": number(bundle["macro_f1"]),
-                "crop_iou_fraction": number(iou[1]),
-                "soil_iou_fraction": number(iou[0]),
-                "weed_iou_fraction": number(iou[2]) if name == "five_class" else "",
-                "dicot_iou_fraction": number(iou[3]) if name == "five_class" else "",
-                "grass_iou_fraction": number(iou[4]) if name == "five_class" else "",
-                "functional_weed_iou_fraction": number(iou[2]) if name != "five_class" else "",
-                "n_valid_pixels": bundle["n_valid"],
-            }
-        )
-    write_rows(
-        output_dir / "table2_semantic_performance.csv",
-        list(output_rows[0]),
-        output_rows,
-    )
-
-
-def reproduce_table3(protocol: dict, output_dir: Path) -> None:
-    crop_rows = read_rows(ROOT / "results" / "crop_fraction_records.csv")
-    date_rows = read_rows(ROOT / "results" / "date_level_summary.csv")
-    if len(crop_rows) != 429 or len(date_rows) != 10:
-        raise RuntimeError("Expected 429 primary rows and 10 date summaries")
-    reference = np.asarray(
-        [float(row["reference_crop_fraction"]) for row in crop_rows], dtype=np.float64
-    )
-    sequence_ids = np.asarray([row["sequence_id"] for row in crop_rows], dtype=str)
-    bootstrap = protocol["bootstrap"]
-    part_a: list[dict[str, object]] = []
-    for method, field in (("hard", "hard_crop_fraction"), ("soft", "soft_crop_fraction")):
-        prediction = np.asarray([float(row[field]) for row in crop_rows], dtype=np.float64)
-        summary = cluster_bootstrap(
-            reference,
-            prediction,
-            sequence_ids,
-            resamples=int(bootstrap["resamples"]),
-            seed=int(bootstrap["random_seed"]),
-            random_number_generator=str(bootstrap["random_number_generator"]),
-        )
-        row: dict[str, object] = {
-            "method": method,
-            "n_images": len(crop_rows),
-            "n_sequences": len(np.unique(sequence_ids)),
-        }
-        for metric in ("bias", "mae", "rmse", "median_absolute_error"):
-            estimate, low, high = summary[metric]
-            row[f"{metric}_fraction"] = number(estimate)
-            row[f"{metric}_ci_low_fraction"] = number(low)
-            row[f"{metric}_ci_high_fraction"] = number(high)
-        part_a.append(row)
-    write_rows(output_dir / "table3a_may23_crop_fraction.csv", list(part_a[0]), part_a)
-
-    part_b_fields = [
-        "acquisition_date",
-        "n_images",
-        "mean_reference_crop_fraction",
-        "crop_iou_fraction",
-        "hard_bias_fraction",
-        "hard_mae_fraction",
-        "hard_rmse_fraction",
-        "date_specific_generalization_claim_supported",
-    ]
-    part_b = [
-        {
-            "acquisition_date": row["acquisition_date"],
-            "n_images": row["eligible_image_count"],
-            "mean_reference_crop_fraction": row["mean_reference_crop_fraction"],
-            "crop_iou_fraction": row["crop_iou"],
-            "hard_bias_fraction": row["hard_crop_bias"],
-            "hard_mae_fraction": row["hard_crop_mae"],
-            "hard_rmse_fraction": row["hard_crop_rmse"],
-            "date_specific_generalization_claim_supported": row[
-                "date_specific_generalization_claim_supported"
-            ],
-        }
-        for row in date_rows
-    ]
-    write_rows(output_dir / "table3b_date_stratified.csv", part_b_fields, part_b)
-
-
-def main() -> None:
+def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--output-dir",
-        type=Path,
-        default=Path("reproduced/tables"),
-        help="Directory for regenerated CSV tables (default: reproduced/tables)",
-    )
+    parser.add_argument('--output-dir', type=Path, default=Path('reproduced/tables'))
     args = parser.parse_args()
-    protocol = load_protocol()
-    reproduce_table1(protocol, args.output_dir)
-    reproduce_table2(args.output_dir)
-    reproduce_table3(protocol, args.output_dir)
-    print(f"Wrote four reproduced table files to {args.output_dir}")
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    s1, s2, ext, m3 = [load_summary(name) for name in ['stage1', 'stage2', 'external', 'm3']]
+    write_table(args.output_dir, 'table1_candidates', read_csv('config/candidates.csv'))
+    write_table(args.output_dir, 'table2_populations', read_csv('config/populations.csv'))
+    bonn = []
+    columns = [('mIoU_pct', 'five_class_miou'), ('crop_IoU_pct', 'crop_iou'),
+               ('functional_mIoU_pct', 'hard_functional_miou'), ('bias_pp', 'crop_fraction_bias'),
+               ('MAE_pp', 'crop_fraction_mae'), ('RMSE_pp', 'crop_fraction_rmse'),
+               ('median_AE_pp', 'median_absolute_error')]
+    for population, data in [('stage1', s1), ('stage2', s2)]:
+        for record in data['pooled_metrics']:
+            row = {'population': population, 'model_id': record['model_id']}
+            row.update({name: displayed(record[key]) for name, key in columns})
+            if population == 'stage1':
+                tail = next(t for t in s1['tail_summary'] if t['model_id'] == record['model_id'])
+                p99 = tail['quantiles_linear']['0.99']
+            else:
+                p99 = record['absolute_error_quantiles']['0.99']
+            row.update(P99_AE_pp=displayed(p99), maximum_AE_pp=displayed(record['maximum_absolute_error']))
+            bonn.append(row)
+    write_table(args.output_dir, 'table3_bonn_profiles', bonn)
+
+    associations = []
+    for a, b in [('five_class_miou', 'crop_iou'), ('five_class_miou', 'crop_fraction_mae'),
+                 ('five_class_miou', 'crop_fraction_rmse'), ('crop_iou', 'crop_fraction_mae'),
+                 ('crop_iou', 'crop_fraction_rmse'), ('crop_fraction_mae', 'crop_fraction_rmse')]:
+        row = {'first_metric': a, 'second_metric': b}
+        for population, records in [('stage1', s1['rank_correlations']), ('stage2', s2['pooled_rank_correlations'])]:
+            record = next(r for r in records if r['first_metric'] == a and r['second_metric'] == b)
+            row[population + '_rho'] = displayed(record['spearman_rho'], 3, 1)
+            row[population + '_tau_b'] = displayed(record['kendall_tau_b'], 3, 1)
+        rename = {'crop_fraction_mae': 'mae', 'crop_fraction_rmse': 'rmse'}
+        matches = [r for r in ext['rank_correlations'] if r['metric_a'] == rename.get(a, a) and r['metric_b'] == rename.get(b, b)]
+        for key, field in [('rho', 'spearman_rho'), ('tau_b', 'kendall_tau_b')]:
+            row['external_' + key] = displayed(matches[0][field], 3, 1) if matches else 'NA'
+        associations.append(row)
+    write_table(args.output_dir, 'table4a_rank_associations', associations)
+    write_table(args.output_dir, 'table4b_rank_persistence', [
+        {'metric': r['metric'], 'rho': displayed(r['spearman_rho'], 3, 1),
+         'tau_b': displayed(r['kendall_tau_b'], 3, 1), 'winner_retained': 'Yes' if r['winner_retained'] else 'No'}
+        for r in s2['cross_stage_rank_persistence']])
+    write_table(args.output_dir, 'table5a_confirmation_outcomes', [
+        {'question_id': r['question_id'], 'question': r['question'], 'status': r['status'],
+         'recorded_components': json.dumps({k: v for k, v in r.items() if k not in ['question_id', 'question', 'status']}, sort_keys=True)}
+        for r in s2['confirmation_questions']])
+    write_table(args.output_dir, 'table5b_date_support', [
+        {'component': key, 'supporting_dates': record['supporting_dates'], 'of_dates': record['of_dates']}
+        for key, record in s2['date_directional_support'].items()])
+    ext_columns = [('crop_IoU_pct', 'crop_iou'), ('bias_pp', 'signed_bias'), ('MAE_pp', 'mae'),
+                   ('RMSE_pp', 'rmse'), ('median_AE_pp', 'median_absolute_error'),
+                   ('P90_AE_pp', 'p90_absolute_error'), ('P95_AE_pp', 'p95_absolute_error'),
+                   ('maximum_AE_pp', 'maximum_absolute_error')]
+    write_table(args.output_dir, 'table6_external_profiles', [
+        {'model_id': r['model_id'], **{name: displayed(r[key]) for name, key in ext_columns}}
+        for r in ext['pooled_metrics']])
+    sem_columns = [('PA_pct', 'PA_fraction'), ('MPA_pct', 'MPA_fraction'), ('mIoU_pct', 'mIoU_fraction'),
+                   ('macro_F1_pct', 'macro_F1_fraction'), ('crop_IoU_pct', 'crop_IoU_fraction'),
+                   ('soil_IoU_pct', 'soil_IoU_fraction'), ('functional_weed_IoU_pct', 'functional_weed_IoU_fraction')]
+    write_table(args.output_dir, 'table7a_m3_representations', [
+        {'representation': r['representation'], **{name: displayed(r[key], 2) if r[key] else 'NA' for name, key in sem_columns}}
+        for r in m3['representation_metrics']])
+    intervals = []
+    for route in ['hard_crop', 'soft_crop']:
+        for metric in ['bias', 'mae', 'rmse', 'median_absolute_error']:
+            r = m3['crop_fraction_estimates'][route][metric]
+            intervals.append({'route': route, 'metric': metric, 'estimate_pp': displayed(r['estimate'], 3),
+                              'CI_low_pp': displayed(r['ci_low'], 3), 'CI_high_pp': displayed(r['ci_high'], 3)})
+    write_table(args.output_dir, 'table7b_m3_saved_intervals', intervals)
+    write_table(args.output_dir, 'table7c_m3_total_vegetation', [
+        {'estimator': k, 'n_images': m3['total_vegetation_population_images'], 'MAE_pp': displayed(v, 3)}
+        for k, v in m3['total_vegetation_mae'].items()])
+    print('Wrote 11 CSV components for manuscript Tables 1-7 to', args.output_dir)
+    print('Stored estimates and intervals were formatted; no analysis or bootstrap was run.')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

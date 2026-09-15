@@ -1,0 +1,5 @@
+# Table export and verification use Python standard library.
+# Plot validation: Python 3.8.12, NumPy 1.24.3, Matplotlib 3.4.3.
+# Compatible later versions may change typography/PDF bytes.
+numpy>=1.22
+matplotlib>=3.4
