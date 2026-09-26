@@ -1,0 +1,161 @@
+{
+  "analysis": "Post-KM-review paired comparative uncertainty; retrospective and descriptive",
+  "bootstrap": {
+    "aggregation": "Image-weighted MAE/RMSE and linearly interpolated image-error P99; external crop IoU from pooled integer TP/(TP+FP+FN).",
+    "interval": "Two-sided 95% percentile: numpy.quantile at 0.025 and 0.975, method=linear",
+    "maximum_error": "Frozen descriptive observations only; no bootstrap interval computed.",
+    "prng": "numpy.random.Generator(PCG64)",
+    "replicates_per_population": 5000,
+    "root_seed": 20260924,
+    "sampling": "Sample K of K lexicographically ordered observed groups with replacement; include every image in each sampled group, including duplicates. Both models receive identical draws.",
+    "streams": "SeedSequence(root_seed).spawn(2): stage1=(0,), external=(1,)",
+    "units": "Fractions in stored inputs/replicates; both fractions and percentage-point differences in paired_contrasts.csv"
+  },
+  "frozen_point_estimate_checks": [
+    {
+      "computed_minus_frozen_fraction": 0.0,
+      "metric": "MAE",
+      "model": "M1",
+      "population": "stage1"
+    },
+    {
+      "computed_minus_frozen_fraction": 0.0,
+      "metric": "RMSE",
+      "model": "M1",
+      "population": "stage1"
+    },
+    {
+      "computed_minus_frozen_fraction": 0.0,
+      "metric": "P99_AE",
+      "model": "M1",
+      "population": "stage1"
+    },
+    {
+      "computed_minus_frozen_fraction": 0.0,
+      "metric": "MAE",
+      "model": "M4",
+      "population": "stage1"
+    },
+    {
+      "computed_minus_frozen_fraction": 0.0,
+      "metric": "RMSE",
+      "model": "M4",
+      "population": "stage1"
+    },
+    {
+      "computed_minus_frozen_fraction": 0.0,
+      "metric": "P99_AE",
+      "model": "M4",
+      "population": "stage1"
+    },
+    {
+      "computed_minus_frozen_fraction": 0.0,
+      "metric": "crop_IoU",
+      "model": "M1",
+      "population": "external"
+    },
+    {
+      "computed_minus_frozen_fraction": 0.0,
+      "metric": "MAE",
+      "model": "M1",
+      "population": "external"
+    },
+    {
+      "computed_minus_frozen_fraction": 0.0,
+      "metric": "RMSE",
+      "model": "M1",
+      "population": "external"
+    },
+    {
+      "computed_minus_frozen_fraction": 0.0,
+      "metric": "crop_IoU",
+      "model": "M5",
+      "population": "external"
+    },
+    {
+      "computed_minus_frozen_fraction": 0.0,
+      "metric": "MAE",
+      "model": "M5",
+      "population": "external"
+    },
+    {
+      "computed_minus_frozen_fraction": 0.0,
+      "metric": "RMSE",
+      "model": "M5",
+      "population": "external"
+    }
+  ],
+  "input_provenance": {
+    "external_grouping": {
+      "basis": "Fixed Application session_id and selected_image_id in splits/cropandweed_48.csv.",
+      "images_per_session": 1,
+      "n_sessions": 48
+    },
+    "frozen_reference_metrics_fraction": {
+      "external": {
+        "M1": {
+          "MAE": 0.01155713371758174,
+          "RMSE": 0.01789881374326302,
+          "crop_IoU": 0.6876092301402089,
+          "maximum_AE_descriptive_only": 0.056767906525720994
+        },
+        "M5": {
+          "MAE": 0.011209484246413375,
+          "RMSE": 0.020792404174847828,
+          "crop_IoU": 0.6354288180746255,
+          "maximum_AE_descriptive_only": 0.07873061829831918
+        }
+      },
+      "stage1": {
+        "M1": {
+          "MAE": 0.005772627652659859,
+          "P99_AE": 0.09110807581218187,
+          "RMSE": 0.01697806963545082,
+          "maximum_AE_descriptive_only": 0.12419005444367763
+        },
+        "M4": {
+          "MAE": 0.004883161435093803,
+          "P99_AE": 0.09692898039516396,
+          "RMSE": 0.017450922424992736,
+          "maximum_AE_descriptive_only": 0.13988654372108478
+        }
+      }
+    },
+    "public_source_sha256": {
+      "results/crop_fraction_records.csv": "cc5c2c50827871c3c1f8cf88c73ca74f36e941dd119c132524754fdd60ede5af",
+      "results/external/per_image_records.csv": "feaea1a34aa875eac73f59f773699913e79b1c793f2f969721b911f9cbb04a97",
+      "results/stage1/per_image_records.csv": "0d7b3697152343757e8980710c061b1bc8f6096d3ec50cf842c33091f5b42827",
+      "splits/cropandweed_48.csv": "b5a5fd9c406b8c7da0c949664d3bf289bb1fa29acd1f210a40fb6610c8db5b9c",
+      "splits/may23_primary_429.csv": "e9b99b60f765bf0719183fc2743e6feda2d3e9239b590c37edee1f5bcb237e32"
+    },
+    "stage1_grouping": {
+      "basis": "Existing public sequence_id and frame_index values in results/crop_fraction_records.csv match all 429 Stage-1 paired image identifiers. No labels inferred or filled.",
+      "matched_sequence_assignments": 429,
+      "missing_or_conflicting_assignments": 0,
+      "population_size": 429,
+      "sequence_sizes": {
+        "bonirob_2016-05-23-10-37-10_0": 57,
+        "bonirob_2016-05-23-10-42-16_1": 69,
+        "bonirob_2016-05-23-10-47-22_2": 56,
+        "bonirob_2016-05-23-10-52-28_3": 42,
+        "bonirob_2016-05-23-10-57-33_4": 59,
+        "bonirob_2016-05-23-11-02-39_5": 60,
+        "bonirob_2016-05-23-11-07-45_6": 56,
+        "bonirob_2016-05-23-11-12-51_7": 30
+      }
+    }
+  },
+  "interpretation": "Conditional on the fixed models and observed acquisition cohort; eight Stage-1 sequences do not undo model-selection reuse. External sessions are not asserted to be statistically independent population sampling units. No p-values or deployment bounds.",
+  "output_sha256": {
+    "bootstrap_replicates.csv": "c839414e36470239d2f5f4f0af752851ac765421e5c87a7467d7121dbd8c1e73",
+    "paired_contrasts.csv": "662fa3bd140cdc4209fb3b193481a54dcf030e1d6a4a3bece2e3bf20b46bff07",
+    "paired_inputs_external.csv": "9fddbc9920546a9658f82d5e08d5fc84d2e14b03ae4e447fd20a2d470c2d3d92",
+    "paired_inputs_stage1.csv": "3c59b904e9040518a7472f0fc50fd83bb2138dc5c6a91abe637c429d9f987362"
+  },
+  "runtime": {
+    "numpy": "2.3.5",
+    "python": "3.12.14"
+  },
+  "script_sha256": "ba0378c50970a890adffa34f996473c9dec3c80dca1f2a42a5e8efe41ae601e9",
+  "source_script_sha256": "16c8cd3dfb34b83f7d7da7f74968eeec1285177d5af745faa27630513ab74bc4"
+}

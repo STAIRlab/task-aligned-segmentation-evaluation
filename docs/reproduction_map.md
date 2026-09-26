@@ -1,6 +1,6 @@
 # Manuscript reproduction map
 
-All commands read stored processed results. They do not refit metrics or repeat scientific experiments.
+Table and figure exporters read stored processed results. The separate paired-analysis command reproduces the Table 7 bootstrap from published processed inputs.
 
 | Manuscript item | Public source | Reproduction output |
 |---|---|---|
@@ -10,7 +10,8 @@ All commands read stored processed results. They do not refit metrics or repeat 
 | Table 4A/B | Stored within-population associations and cross-stage persistence | `table4a_rank_associations.csv`, `table4b_rank_persistence.csv` |
 | Table 5A/B | Stage-2 question outcomes and component date support | `table5a_confirmation_outcomes.csv`, `table5b_date_support.csv` |
 | Table 6 | External `summary.json` | `table6_external_profiles.csv` |
-| Table 7A/B/C | M3 `summary.json` | `table7a_m3_representations.csv`, `table7b_m3_saved_intervals.csv`, `table7c_m3_total_vegetation.csv` |
+| Table 7 | `results/paired_uncertainty/paired_contrasts.csv` | `table7_paired_uncertainty.csv`; regenerate full precision with `scripts/analyze_paired_uncertainty.py` |
+| Table 8A/B/C | M3 `summary.json` | `table8a_m3_representations.csv`, `table8b_m3_saved_intervals.csv`, `table8c_m3_total_vegetation.csv` |
 | Figure 1 | Conceptual definitions in the protocol and manuscript | Not regenerated; integrated conceptual/image illustration |
 | Figure 2 | Prespecified frame-188 comparison, described in the protocol | Not regenerated; native RGB, reference and seven prediction maps are not distributed |
 | Figure 3 | Stage-1/Stage-2 pooled profiles | `figure3a`–`figure3d` |
@@ -19,7 +20,7 @@ All commands read stored processed results. They do not refit metrics or repeat 
 | Figure 6 | M3 global confusion counts and pooled FP/FN in the three populations | `figure6a_matrix`, `figure6b_composition`, `figure6c_pooled` |
 | Figure 7 | Prespecified M3 case identities and rules | Not regenerated; RGB, annotation and prediction/error maps are not distributed |
 
-Table files are CSVs, with the displayed precision used in the manuscript. Full precision remains in the JSON records. Table 5 exports the recorded component outcomes, not a new interpretation of partial confirmation. Each plotted panel is exported as PDF and PNG. LaTeX captions and panel assembly are outside these portable renderers.
+Table files are CSVs, with the displayed precision used in the manuscript. Full precision remains in the JSON records and `results/paired_uncertainty/paired_contrasts.csv`. Table 5 exports the recorded component outcomes, not a new interpretation of partial confirmation. Each plotted panel is exported as PDF and PNG. LaTeX captions and panel assembly are outside these portable renderers.
 
 The Figure 4a tails are retrospective/exploratory; Figure 4b uses the prespecified Stage-2 quantiles. White bold numeric labels and their dark strokes are uniform. Figure 4a winner outlines are black with a common width. Figure 4c reads the stored date rankings and retains ties rather than reranking rounded values.
 

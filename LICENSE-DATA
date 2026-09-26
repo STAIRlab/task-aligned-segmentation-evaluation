@@ -7,6 +7,8 @@ results/m3/, the existing top-level results/*.csv, splits/may23_primary_429.csv
 and splits/temporal_185.csv, and splits/stage2_180.csv are licensed under
 Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0).
 The authors' configuration metadata under config/ use the same license.
+This scope also covers results/paired_uncertainty/paired_inputs_stage1.csv
+and the Stage-1 rows/columns of the paired contrast and replicate files.
 https://creativecommons.org/licenses/by-sa/4.0/
 https://creativecommons.org/licenses/by-sa/4.0/legalcode
 
@@ -28,6 +30,9 @@ under CC BY-SA 4.0. The provider permits abstract derivative representations
 that do not allow recovery of the source dataset; source or modified dataset
 redistribution is not permitted. Refer to the provider's complete terms:
 https://github.com/cropandweed/cropandweed-dataset/blob/main/LICENCE
+
+These same conditions apply to results/paired_uncertainty/paired_inputs_external.csv
+and the external rows/columns of the paired contrast and replicate files.
 
 Source attribution: AIT Austrian Institute of Technology GmbH; Steininger, D.,
 Trondl, A., Croonen, G., Simon, J., and Widhalm, V. (2023). The CropAndWeed

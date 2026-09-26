@@ -89,7 +89,7 @@ measurement:
   fraction_units: "0-1; multiply by 100 for percentage/percentage-point display"
   bias_and_average_error_weighting: equal_weight_per_image
   directional_rates: "Pooled counts / pooled valid pixels; not image-weighted bias when valid image sizes differ."
-  uncertainty_scope: "M3 only; no seven-candidate comparative bootstrap."
+  uncertainty_scope: "M3-specific saved intervals; paired Stage-1 M1/M4 and external M1/M5 contrasts conditional on fixed models and observed acquisition units."
   rank_orientation: "1 is best; IoU higher, errors lower; absolute bias only when ranked."
   p_values: not_reported
   nominal_five_class_mIoU_defined_classes: {stage1: 5, stage2: 4}
@@ -108,6 +108,20 @@ m3_saved_intervals:
   original_random_number_generator: PCG64
   intervals_file: results/m3/summary.json
   rerun_by_public_commands: false
+
+paired_comparative_uncertainty:
+  manuscript_table: 7
+  stage1: {contrast: "M1 - M4", images: 429, sequences: 8, metrics: [MAE, RMSE, P99_AE]}
+  external: {contrast: "M1 - M5", images: 48, sessions: 48, metrics: [crop_IoU, MAE, RMSE]}
+  replicates_per_population: 5000
+  root_seed: 20260924
+  streams: "SeedSequence(20260924).spawn(2), PCG64; stage1=(0,), external=(1,)"
+  method: paired_whole_group_percentile
+  percentiles: [2.5, 97.5]
+  external_crop_iou: pooled_TP_over_TP_FP_FN_per_replicate
+  observed_maxima: descriptive_only_no_interval
+  inputs_and_reference_outputs: results/paired_uncertainty/
+  command: "python -B scripts/analyze_paired_uncertainty.py"
 m3_date_support:
   minimum_eligible_unique_images: 10
   minimum_reconstructable_sequences: 2

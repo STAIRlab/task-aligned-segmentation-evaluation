@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export Tables 1-7 from stored results; no metric estimation or resampling."""
+"""Export Tables 1-8 from stored results; no metric estimation or resampling."""
 import argparse
 import csv
 import json
@@ -87,10 +87,15 @@ def main():
     write_table(args.output_dir, 'table6_external_profiles', [
         {'model_id': r['model_id'], **{name: displayed(r[key]) for name, key in ext_columns}}
         for r in ext['pooled_metrics']])
+    write_table(args.output_dir, 'table7_paired_uncertainty', [
+        {'population': r['population'], 'contrast': r['contrast'], 'metric': r['metric'],
+         **{key: displayed(r[key], 4, 1) for key in
+            ['observed_difference_pp', 'ci_low_pp', 'ci_high_pp']}}
+        for r in read_csv('results/paired_uncertainty/paired_contrasts.csv')])
     sem_columns = [('PA_pct', 'PA_fraction'), ('MPA_pct', 'MPA_fraction'), ('mIoU_pct', 'mIoU_fraction'),
                    ('macro_F1_pct', 'macro_F1_fraction'), ('crop_IoU_pct', 'crop_IoU_fraction'),
                    ('soil_IoU_pct', 'soil_IoU_fraction'), ('functional_weed_IoU_pct', 'functional_weed_IoU_fraction')]
-    write_table(args.output_dir, 'table7a_m3_representations', [
+    write_table(args.output_dir, 'table8a_m3_representations', [
         {'representation': r['representation'], **{name: displayed(r[key], 2) if r[key] else 'NA' for name, key in sem_columns}}
         for r in m3['representation_metrics']])
     intervals = []
@@ -99,11 +104,11 @@ def main():
             r = m3['crop_fraction_estimates'][route][metric]
             intervals.append({'route': route, 'metric': metric, 'estimate_pp': displayed(r['estimate'], 3),
                               'CI_low_pp': displayed(r['ci_low'], 3), 'CI_high_pp': displayed(r['ci_high'], 3)})
-    write_table(args.output_dir, 'table7b_m3_saved_intervals', intervals)
-    write_table(args.output_dir, 'table7c_m3_total_vegetation', [
+    write_table(args.output_dir, 'table8b_m3_saved_intervals', intervals)
+    write_table(args.output_dir, 'table8c_m3_total_vegetation', [
         {'estimator': k, 'n_images': m3['total_vegetation_population_images'], 'MAE_pp': displayed(v, 3)}
         for k, v in m3['total_vegetation_mae'].items()])
-    print('Wrote 11 CSV components for manuscript Tables 1-7 to', args.output_dir)
+    print('Wrote 12 CSV components for manuscript Tables 1-8 to', args.output_dir)
     print('Stored estimates and intervals were formatted; no analysis or bootstrap was run.')
 
 

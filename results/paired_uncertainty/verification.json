@@ -1,0 +1,59 @@
+{
+  "public_data_check": {
+    "identifiers_already_in_public_cohorts": true,
+    "private_acquisition_metadata_included": false,
+    "processed_counts_fractions_errors_only": true,
+    "raw_imagery_or_annotations_included": false,
+    "stage1_grouping_matches_public_m3_records": true
+  },
+  "public_reproduction": {
+    "all_six_contrasts_and_interval_endpoints_match_full_precision": true,
+    "byte_identical_reproduced_csvs": [
+      "paired_inputs_stage1.csv",
+      "paired_inputs_external.csv",
+      "paired_contrasts.csv",
+      "bootstrap_replicates.csv"
+    ],
+    "date": "2026-09-25",
+    "prior_table_components_unchanged": 11,
+    "reference_csv_sha256": {
+      "bootstrap_replicates.csv": "c839414e36470239d2f5f4f0af752851ac765421e5c87a7467d7121dbd8c1e73",
+      "paired_contrasts.csv": "662fa3bd140cdc4209fb3b193481a54dcf030e1d6a4a3bece2e3bf20b46bff07",
+      "paired_inputs_external.csv": "9fddbc9920546a9658f82d5e08d5fc84d2e14b03ae4e447fd20a2d470c2d3d92",
+      "paired_inputs_stage1.csv": "3c59b904e9040518a7472f0fc50fd83bb2138dc5c6a91abe637c429d9f987362"
+    },
+    "runtime": {
+      "numpy": "2.3.5",
+      "python": "3.12.14"
+    },
+    "source_metric_and_bootstrap_calculations_unchanged": true,
+    "table_7_display_matches_four_decimal_values": true,
+    "unit_tests_passed": 3
+  },
+  "recorded_original_analysis_checks": {
+    "compact_output_hashes_verified": true,
+    "frozen_metric_checks": {
+      "count": 12,
+      "maximum_absolute_residual_fraction": 0.0
+    },
+    "independent_weighted_replicate_checks": {
+      "all_passed": true,
+      "external": 64,
+      "stage1": 64
+    },
+    "no_maximum_error_interval_computed": true,
+    "original_input_hashes_unchanged": true,
+    "percentile_intervals_rechecked_from_5000_saved_differences": 6,
+    "seed": 20260924,
+    "table_matches_csv_at_four_decimal_places": true,
+    "unit_tests": {
+      "passed": 3,
+      "scope": [
+        "pooled crop IoU",
+        "complete repeated acquisition sequences",
+        "identical prediction cancellation and paired sign reversal"
+      ]
+    }
+  },
+  "source_verification_sha256": "4961873c4b37cd06b63b2d2a9b9592bbcd2bcfdb98d8abd8a135537201fb7262"
+}

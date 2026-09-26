@@ -6,7 +6,7 @@
 - Fractions, IoUs and error magnitudes in JSON/per-image CSVs use a 0–1 scale. Display scripts multiply by 100. An IoU becomes a percentage; a crop-fraction error becomes percentage points (pp).
 - Confusion matrices use reference rows and predicted columns. `N_valid` is the per-image valid-pixel denominator; `N_valid_pooled` is its population total. External reference label 255 is excluded from every metric.
 - Bias, MAE and RMSE are image-weighted. Pooled FP/FN rates are pixel-weighted. They are not interchangeable when image sizes/valid masks differ.
-- Quantiles, correlations, ranks, exceedances and intervals are saved results. No release command computes new estimates of them. Undefined external five-class results are absent, not zero.
+- Table/figure exports read saved quantiles, correlations, ranks, exceedances and intervals. The paired-analysis command reproduces the specified Table 7 intervals from processed inputs. Undefined external five-class results are absent, not zero.
 
 ## Summary JSONs
 
@@ -24,7 +24,13 @@
 
 `results/external/per_image_records.csv` contains candidate/image ID, valid pixels, reference/predicted hard crop fractions, signed and absolute errors, and the four binary confusion counts. No GPS, author-supplied timestamps, model paths, checkpoint files or runtime metadata are included.
 
-The existing top-level M3 CSVs retain their original schemas and bytes. `per_image_confusion.csv` additionally contains probability-functional counts; `crop_fraction_records.csv` contains soft estimates and sequence/frame IDs; `task_aligned_errors.csv` preserves the disjoint semantic-error components; `date_level_summary.csv` contains the M3-specific 185-image temporal summaries. They are supplementary processed records for Table 7 and directional interpretation, not a seven-model Stage-2 leaderboard.
+The existing top-level M3 CSVs retain their original schemas and bytes. `per_image_confusion.csv` additionally contains probability-functional counts; `crop_fraction_records.csv` contains soft estimates and sequence/frame IDs; `task_aligned_errors.csv` preserves the disjoint semantic-error components; `date_level_summary.csv` contains the M3-specific 185-image temporal summaries. They are supplementary processed records for Table 8 and directional interpretation, not a seven-model Stage-2 leaderboard.
+
+## Paired comparative uncertainty
+
+`results/paired_uncertainty/paired_inputs_stage1.csv` stores 429 public image IDs, the existing sequence/frame assignments, valid-pixel counts, reference fractions and M1/M4 signed errors. `paired_inputs_external.csv` stores 48 public image/session IDs, valid-pixel counts, reference fractions, M1/M5 signed errors and integer TP/FP/FN/TN counts. Neither input contains author-supplied acquisition timestamps or GPS.
+
+`paired_contrasts.csv` stores six observed differences and percentile limits in fractions and percentage points, with the model order, resampling unit, unit/image counts, replicate count and root seed. `bootstrap_replicates.csv` stores 5,000 paired differences per metric/population in fractions and each replicate's image count. `analysis_manifest.json` records public-source/input/output hashes, grouping, full-precision reference values, streams and runtime. See the directory README for reproduction instructions.
 
 ## Cohorts and provenance
 

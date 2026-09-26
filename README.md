@@ -8,9 +8,9 @@ Companion processed-data package for the manuscript of the same title. It suppor
 
 ## What this package reproduces
 
-The scripts export the numerical content of **Tables 1–7** and render the quantitative panels of **Figures 3–6** from the saved results. Stored per-image confusion/count records support inspection of the underlying measurements. The M3 representation, hard/soft estimator and matched total-vegetation checks are a secondary component.
+The scripts export the numerical content of **Tables 1–8** and render the quantitative panels of **Figures 3–6** from the saved results. The paired-analysis command reproduces the six comparative-uncertainty contrasts in Table 7. Stored per-image confusion/count records support inspection of the underlying measurements. The M3 representation, hard/soft estimator and matched total-vegetation checks are a secondary component in Table 8.
 
-This is a processed-results package, not a training archive. It contains no model weights, raw imagery, raw annotations, population prediction masks or inference environment. Commands below do not train models, infer predictions, calculate new metrics, estimate quantiles/correlations, or rerun bootstrap intervals. Figure 1 is conceptual; the image/mask-based Figures 2 and 7 are not regenerated here. See the [figure/table map and remaining gaps](docs/reproduction_map.md).
+This is a processed-results package, not a training archive. It contains no model weights, raw imagery, raw annotations, population prediction masks or inference environment. Commands below do not train models or infer predictions. Table/figure exporters read saved summaries; the separate paired-analysis command recomputes the specified Table 7 bootstrap from processed inputs. Figure 1 is conceptual; the image/mask-based Figures 2 and 7 are not regenerated here. See the [figure/table map and remaining gaps](docs/reproduction_map.md).
 
 ## Evaluation populations
 
@@ -50,9 +50,10 @@ Numbering is fixed across populations. These configurations are not a controlled
 | `results/stage1/` | Seven-model profiles, exploratory tails/rank associations, directional summaries and 3,003 model–image records |
 | `results/stage2/` | Pooled/date profiles and rankings, confirmation outcomes, date support and 1,260 model–image records |
 | `results/external/` | CropAndWeed binary profiles, tails, ranks, directional results and 336 model–image records |
+| `results/paired_uncertainty/` | Table 7 paired inputs, full-precision contrasts, 5,000 replicate records, manifest and verification |
 | `results/m3/summary.json` | Saved representation metrics, crop-fraction intervals, total-vegetation MAEs and aggregate confusion counts |
 | Existing top-level `results/*.csv` | M3 per-image hard/soft/probability-functional and date-level records retained for secondary checks |
-| `scripts/` | Integrity checks, table export and quantitative-panel rendering |
+| `scripts/` | Integrity checks, table export, quantitative-panel rendering and paired-uncertainty reproduction/tests |
 | `docs/` | Data dictionary, manuscript map and concise cleanup manifest |
 
 Each model–image record represents a stored evaluation output, not an independent experimental replicate. Summaries retain unrounded values. Fractions use a 0–1 scale; display scripts multiply by 100 for percentages or percentage points. See the [data dictionary](docs/data_dictionary.md).
@@ -70,9 +71,22 @@ python scripts/reproduce_main_figures.py --output-dir reproduced/figures
 
 Plot rendering was checked with Python 3.8.12, NumPy 1.24.3 and Matplotlib 3.4.3; table export was also checked with Python 3.10.
 
-The table command writes 11 CSV components for the seven manuscript tables. The plot command writes 15 PDF panels and matching PNGs for Figures 3–6, using the manuscript plotting functions with portable data paths. It preserves the common candidate colors and final Figure 4 white bold labels with dark strokes. Subcaptions and overall captions remain manuscript composition, so panel files are not complete LaTeX page layouts. Use `--figures 4` to render only Figure 4's four components.
+The table command writes 12 CSV components for the eight manuscript tables. The plot command writes 15 PDF panels and matching PNGs for Figures 3–6, using the manuscript plotting functions with portable data paths. It preserves the common candidate colors and final Figure 4 white bold labels with dark strokes. Subcaptions and overall captions remain manuscript composition, so panel files are not complete LaTeX page layouts. Use `--figures 4` to render only Figure 4's four components.
 
-Confidence limits, quantiles, correlations, ranks and confirmation outcomes are read from the stored records. Display rounding and count-to-percentage conversion do not re-estimate those results. Generated files go to the ignored `reproduced/` directory. PDF bytes can differ with fonts/library versions; the numerical inputs are fixed by [checksums.sha256](checksums.sha256).
+Table/figure exports read confidence limits, quantiles, correlations, ranks and confirmation outcomes from the stored records. Display rounding and count-to-percentage conversion do not re-estimate those results. Generated files go to the ignored `reproduced/` directory. PDF bytes can differ with fonts/library versions; the numerical inputs are fixed by [checksums.sha256](checksums.sha256).
+
+## Reproduce paired comparative uncertainty (Table 7)
+
+The analysis compares Stage-1 M1 minus M4 for MAE, RMSE and P99 absolute error, and external M1 minus M5 for crop IoU, MAE and RMSE. It uses 5,000 paired replicates per population with root seed `20260924`: eight whole acquisition sequences for Stage 1 and 48 sessions for CropAndWeed. External crop IoU is recomputed from pooled TP/FP/FN in each replicate. The comparisons are conditional on the fixed evaluated models and observed acquisition units.
+
+Use Python >=3.9 and NumPy >=1.22; exact reproduction was checked with Python 3.12.14 and NumPy 2.3.5:
+
+```bash
+python -B -m unittest discover -s scripts -p test_paired_uncertainty.py -v
+python -B scripts/analyze_paired_uncertainty.py
+```
+
+Outputs go to `reproduced/paired_uncertainty/`. Published reference contrasts and replicate-level differences are in [results/paired_uncertainty/](results/paired_uncertainty/README.md). That directory documents grouping, streams, units and provenance; no private acquisition metadata are needed. The original 2,000-resample M3 intervals remain stored secondary results in Table 8.
 
 ## Source datasets and licenses
 
